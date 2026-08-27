@@ -3,6 +3,7 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { getAllCommands, registerCommands } from './helpers/fileManager.ts';
 import type { SharedSlashCommand, SlashCommandBuilder } from 'discord.js';
+import { database } from './helpers/database.ts';
 
 configEnv({ quiet: true });
 
@@ -19,12 +20,20 @@ const rest = new REST().setToken(process.env.TOKEN as string);
 try {
     console.log(`refreshing ${commands.length} commands...`);
 
-    const data = await rest.put(
+    await rest.put(
         Routes.applicationCommands(process.env.CLIENT_ID as string),
         { body: [...commands] },
     );
 
-    console.log(`commands deployed!`);
+    console.log("commands deployed!");
 } catch (error) {
-    console.error(error);
+    console.error("command error:", error);
 }
+
+database.sequelize.sync().then(() => {
+    console.log("db synced!");
+}).catch((err: any) => {
+    console.error("db error:", err);
+}).finally(() => {
+    database.sequelize.close();
+})
