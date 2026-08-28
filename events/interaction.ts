@@ -30,7 +30,8 @@ async function execute(interaction: Interaction) {
         // custom ids are formatted like this: `commandName:actionId:param1,param2,param3`
         const commandName = interaction.customId.split(':')[0];
         const actionId = interaction.customId.split(':')[1];
-        const params = interaction.customId.split(':')[2]?.split(",");
+        let params = interaction.customId.split(':')[2]?.split(",");
+        if (!params) params = [];
 
         const command = getCommand(commandName);
 

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ContainerBuilder, SlashCommandBuilder, TextDisplayBuilder, type Interaction, type InteractionReplyOptions } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SlashCommandBuilder, TextDisplayBuilder, type BaseMessageOptionsWithPoll, type Interaction, type InteractionReplyOptions } from "discord.js";
 import type { Command } from "../types.ts";
 import { MessageFlags } from 'discord-api-types/v10';
 import { database } from "../helpers/database.ts";
@@ -9,7 +9,9 @@ export const commandData: Command = {
         .setName("click")
         .setDescription("Click the button to earn Clicks and Bits."),
     async execute(interaction) {
-        await interaction.reply(await getResponse(interaction));
+        let resp: InteractionReplyOptions = await getResponse(interaction);
+        resp.flags = MessageFlags.IsComponentsV2;
+        await interaction.reply(resp);
     },
     buttons: new Map()
 }
@@ -21,10 +23,10 @@ commandData.buttons!.set("click", async (interaction) => {
     player.bits += 1;
 
     await player.save();
-    await interaction.reply(await getResponse(interaction));
+    await interaction.update(await getResponse(interaction));
 })
 
-async function getResponse(interaction: Interaction): Promise<InteractionReplyOptions> {
+async function getResponse(interaction: Interaction): Promise<BaseMessageOptionsWithPoll> {
     const [player, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }});
 
     const container = new ContainerBuilder()
@@ -43,5 +45,5 @@ async function getResponse(interaction: Interaction): Promise<InteractionReplyOp
 
     container.addTextDisplayComponents(text);
 
-    return { components: [container, row], flags: MessageFlags.IsComponentsV2 }
+    return { components: [container, row] }
 }
