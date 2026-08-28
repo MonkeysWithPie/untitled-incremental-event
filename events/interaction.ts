@@ -27,6 +27,13 @@ async function execute(interaction: Interaction) {
         // appease the typescript gods (these will never happen)
         if (interaction.isContextMenuCommand() || interaction.isPrimaryEntryPointCommand()) { return; }
 
+        if (interaction.message && interaction.message.interactionMetadata) {
+            if (interaction.message.interactionMetadata.user.id !== interaction.user.id) {
+                await interaction.reply({ content: "Not for you!", flags: MessageFlags.Ephemeral });
+                return;
+            }
+        }
+
         // custom ids are formatted like this: `commandName:actionId:param1,param2,param3`
         const commandName = interaction.customId.split(':')[0];
         const actionId = interaction.customId.split(':')[1];

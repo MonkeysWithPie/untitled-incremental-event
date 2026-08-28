@@ -12,11 +12,11 @@ export const upgradeData: Upgrade = {
             specials: {
                 rowWidth: 1 + level
             },
-            clickMultiplier: level/10 + 1
+            clickMult: level/10 + 1
         }
     },
     price: (level) => {
-        if (level > 4) return null;
+        if (level >= 4) return null;
         return 25 * (level + 1)
     },
     visibility: (context) => {

@@ -13,7 +13,7 @@ export const upgradeData: Upgrade = {
         }
     },
     price: (level) => {
-        return 8 * (level + 1) * (level/12 + 1)
+        return 8 * (level + 1) * (level/12 + 1) * (level/30 + 1)
     },
     visibility: (context) => {
         const morebitsLevel = context.upgrades.morebits || 0;

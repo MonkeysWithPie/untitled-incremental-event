@@ -16,7 +16,7 @@ export const upgradeData: Upgrade = {
         return {}
     },
     price: (level) => {
-        if (level > 2) return null;
+        if (level >= 2) return null;
         return 100 * Math.pow(2, level)
     },
     visibility: (context) => {

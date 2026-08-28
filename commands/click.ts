@@ -17,14 +17,9 @@ export const commandData: Command = {
     buttons: new Map()
 }
 
-commandData.buttons!.set("click", async (interaction) => {
-    const [player, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }});
-    
-    player.clicks += 1;
-    player.bits += 1;
-
-    await player.save();
-    await interaction.update(await getResponse(interaction));
+commandData.buttons!.set("click", async (interaction) => {    
+    const resp = await getResponse(interaction);
+    await interaction.update(resp);
 })
 
 async function getResponse(interaction: Interaction, clicked = true): Promise<BaseMessageOptionsWithPoll> {
@@ -129,7 +124,7 @@ async function getResponse(interaction: Interaction, clicked = true): Promise<Ba
 
     const components: any[] = [container];
 
-    if (Object.keys(player.upgrades).length < 0 && player.clicks > 10) {
+    if (Object.keys(player.upgrades).length <= 0 && player.clicks > 10) {
         const upgradeTipContainer = new ContainerBuilder()
             .setAccentColor(0x82edda)
             .addTextDisplayComponents(

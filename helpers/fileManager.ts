@@ -28,7 +28,9 @@ export function getAllCommands() {
 }
 
 export function getAllUpgrades() {
-    return upgrades.values().toArray().sort((a, b) => a.sort - b.sort);
+    const arr = upgrades.values().toArray();
+    arr.sort((a, b) => a.sort - b.sort);
+    return arr;
 }
 
 export async function registerFiles(basePath: string) {

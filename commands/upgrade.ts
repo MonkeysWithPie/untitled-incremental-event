@@ -1,6 +1,6 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { SeparatorBuilder, SlashCommandBuilder } from "@discordjs/builders";
 import type { Command, UpgradeShopContext } from "../types.ts";
-import { MessageFlags } from 'discord-api-types/v10';
+import { MessageFlags, SeparatorSpacingSize } from 'discord-api-types/v10';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SectionBuilder, TextDisplayBuilder, type BaseMessageOptionsWithPoll, type Interaction, type InteractionReplyOptions } from "discord.js";
 import { database } from "../helpers/database.ts";
 import { getAllUpgrades, getUpgrade } from "../helpers/fileManager.ts";
@@ -43,8 +43,8 @@ commandData.buttons!.set("buy", async (interaction, upgradeId) => {
     await interaction.followUp({ content: `You bought ${upgrade.name} Level ${player.upgrades[upgrade.id]} for ${price.toFixed(2)} Bits!`, flags: MessageFlags.Ephemeral });
 })
 
-commandData.buttons!.set("bitcounter", async (interaction) => {
-    await interaction.update();
+commandData.buttons!.set("bitcounter", async (interaction, tab) => {
+    await interaction.update(await getResponse(interaction, tab));
 })
 
 async function getResponse(interaction: Interaction, tab: string): Promise<BaseMessageOptionsWithPoll> {
@@ -62,6 +62,8 @@ async function getResponse(interaction: Interaction, tab: string): Promise<BaseM
             new TextDisplayBuilder()
                 .setContent(`### Upgrades`)
         );
+    
+    const sections: SectionBuilder[] = [];
 
     for (const upgrade of getAllUpgrades()) {
         if (upgrade.type !== tab) continue;
@@ -78,10 +80,11 @@ async function getResponse(interaction: Interaction, tab: string): Promise<BaseM
                 new ButtonBuilder()
                     .setCustomId(`upgrade:buy:${upgrade.id}`)
                     .setLabel(`Buy`)
+                    .setStyle(ButtonStyle.Primary)
                     .setDisabled(true)
             )
 
-            container.addSectionComponents(section);
+            sections.push(section);
             continue;
         }
 
@@ -98,27 +101,31 @@ async function getResponse(interaction: Interaction, tab: string): Promise<BaseM
                 new ButtonBuilder()
                     .setCustomId(`upgrade:buy:${upgrade.id}`)
                     .setLabel(`MAX!`)
+                    .setStyle(ButtonStyle.Primary)
                     .setDisabled(true)
             )
         } else {
             section.addTextDisplayComponents(
                 new TextDisplayBuilder()
-                    .setContent(`**${upgrade.name}** Level ${level}\n${upgrade.description}\n${effectString}\n Upgradeable to ${nextEffectString} for ${price.toFixed(2)} Bits`)
+                    .setContent(`**${upgrade.name}** Level ${level}\n${upgrade.description}\nCurrently **${effectString}**\nUpgradeable to ${nextEffectString} for **${price.toFixed(2)} Bits**`)
             ).setButtonAccessory(
                 new ButtonBuilder()
                     .setCustomId(`upgrade:buy:${upgrade.id}`)
                     .setLabel(`Buy`)
+                    .setStyle(ButtonStyle.Primary)
                     .setDisabled(player.bits < price)
             )
         }
 
-        container.addSectionComponents(section);        
+        sections.push(section);
     }
 
-    if (container.components.length === 0) {
-        container.addTextDisplayComponents(
-            new TextDisplayBuilder()
-                .setContent("There's nothing here yet!")
+    for (let i = 0; i < sections.length; i++) {
+        container.addSectionComponents(sections[i]);
+        if (i !== sections.length - 1) container.addSeparatorComponents(
+            new SeparatorBuilder()
+                .setDivider(true)
+                .setSpacing(SeparatorSpacingSize.Small)
         )
     }
 
@@ -126,7 +133,7 @@ async function getResponse(interaction: Interaction, tab: string): Promise<BaseM
 
     categoryRow.addComponents(
         new ButtonBuilder()
-            .setCustomId(`upgrade:bitcounter`)
+            .setCustomId(`upgrade:bitcounter:${tab}`)
             .setLabel(`${player.bits.toFixed(2)} Bits`)
             .setStyle(ButtonStyle.Secondary)
     )

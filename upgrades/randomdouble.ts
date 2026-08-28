@@ -8,14 +8,17 @@ export const upgradeData: Upgrade = {
         return `${(level * 5).toFixed(0)}% chance`
     },
     effect: (context, level) => {
-        return {
-            
+        if (Math.random() < level * 0.05) {
+            return {
+                bitMult: 2,
+            }
         }
+        return {};
     },
     price: (level) => {
         if (level >= 19) return null;
 
-        return level+1 ** 1.5 * 20;
+        return (level+1) ** 1.5 * 20;
     },
     visibility: (context) => {
         const multiBitsLevel = context.upgrades.multiply || 0;

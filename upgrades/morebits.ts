@@ -13,7 +13,7 @@ export const upgradeData: Upgrade = {
         }
     },
     price: (level) => {
-        return 10 * (level + 1) * (level/10 + 1);
+        return 10 * (level + 1) * (level/10 + 1) * (level/30 + 1);
     },
     visibility: (context) => {
         return "show"

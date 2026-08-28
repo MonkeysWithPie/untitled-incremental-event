@@ -18,6 +18,6 @@ export const upgradeData: Upgrade = {
     visibility: (context) => {
         return "show"
     },
-    type: "upgrade",
+    type: "perk",
     sort: 0,
 }
