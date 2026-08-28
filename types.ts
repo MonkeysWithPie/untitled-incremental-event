@@ -31,6 +31,7 @@ export interface UpgradeShopContext extends UpgradeContext {
 export interface UpgradeEffect {
     clicks?: number;
     clickMult?: number;
+    globalClicks?: number;
 
     bits?: number;
     bitMult?: number;

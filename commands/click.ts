@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SlashCommandBuilder, TextDisplayBuilder, type BaseMessageOptionsWithPoll, type Interaction, type InteractionReplyOptions } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, type BaseMessageOptionsWithPoll, type Interaction, type InteractionReplyOptions } from "discord.js";
 import type { Command, UpgradeContext } from "../types.ts";
 import { MessageFlags } from 'discord-api-types/v10';
 import { database } from "../helpers/database.ts";
@@ -30,15 +30,20 @@ commandData.buttons!.set("click", async (interaction) => {
 async function getResponse(interaction: Interaction, clicked = true): Promise<BaseMessageOptionsWithPoll> {
     const [player, ] = await database.Player.findOrCreate({ where: { userId: interaction.user.id }});
 
-    const row = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId("click:click")
-                .setLabel("Click!")
-                .setStyle(ButtonStyle.Primary)
-        )
+    // add a random number to prevent customId being the same
+    // (note this solution isn't perfect, but we can maybe catch the error and reward the 1 in 1m later?)
+    const clickButton = () => new ButtonBuilder()
+        .setCustomId(`click:click:${Math.floor(Math.random() * 1000000)}`)
+        .setLabel("Click!")
+        .setStyle(ButtonStyle.Primary)
+    const fillerButton = () => new ButtonBuilder()
+        .setCustomId(`click:filler:${Math.floor(Math.random() * 1000000)}`)
+        .setLabel("XXX")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(true)
     
     if (!clicked) {
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(clickButton())
         return { components: [row] }
     }
 
@@ -46,11 +51,15 @@ async function getResponse(interaction: Interaction, clicked = true): Promise<Ba
         clicks: player.clicks,
         bits: player.bits,
     }
-    let specials: { [name: string]: any } = {};
-    let bitsToAdd = 1;
-    let bitMult = 1;
-    let clicksToAdd = 1;
-    let clickMult = 1;
+    let effects = {
+        specials: {},
+        bits: 1,
+        clicks: 1,
+        bitMult: 1,
+        clickMult: 1,
+        globalClicks: 0,
+    }
+    let specials: { [key: string]: any } = {}
 
     for (const [name, level] of Object.entries(player.upgrades)) {
         const upgrade = getUpgrade(name);
@@ -58,16 +67,19 @@ async function getResponse(interaction: Interaction, clicked = true): Promise<Ba
         const effect = upgrade.effect(context, level);
 
         if (effect.bits) {
-            bitsToAdd += effect.bits;
+            effects.bits += effect.bits;
         }
         if (effect.clicks) {
-            clicksToAdd += effect.clicks;
+            effects.clicks += effect.clicks;
         }
         if (effect.bitMult) {
-            bitMult *= effect.bitMult;
+            effects.bitMult *= effect.bitMult;
         }
         if (effect.clickMult) {
-            clickMult *= effect.clickMult;
+            effects.clickMult *= effect.clickMult;
+        }
+        if (effect.globalClicks) {
+            effects.globalClicks += effect.globalClicks;
         }
 
         if (effect.specials) {
@@ -77,16 +89,39 @@ async function getResponse(interaction: Interaction, clicked = true): Promise<Ba
         }
     }
 
-    const bitsAdded = bitsToAdd * bitMult;
-    const clicksAdded = clicksToAdd * clickMult;
+    const bitsAdded = effects.bits * effects.bitMult;
+    const clicksAdded = effects.clicks * effects.clickMult;
     
     player.bits += bitsAdded;
     player.clicks += clicksAdded;
     await player.save();
 
+    if (effects.globalClicks > 0) {
+        const [global, ] = await database.Player.findOrCreate({ where: { userId: "global" }});
+        global.clicks += effects.globalClicks;
+        await global.save();
+    }
+
+    const row = new ActionRowBuilder<ButtonBuilder>();
+    const rowWidth = specials.rowWidth || 1;
+    const buttonSpot = Math.floor(Math.random() * rowWidth);
+    for (let i = 0; i < rowWidth; i++) {
+        if (i === buttonSpot) {
+            row.addComponents(clickButton());
+        } else {
+            row.addComponents(fillerButton());
+        }
+    }
+
     const container = new ContainerBuilder()
         .setAccentColor(0x5c97f7)
     
+    const globalClicks = await database.Player.sum("clicks");
+
+    container.addTextDisplayComponents(new TextDisplayBuilder()
+        .setContent(`### ${globalClicks.toFixed(2)} CLICKS (+${(clicksAdded + effects.globalClicks).toFixed(2)})\nNext reward: TODO write the code for this`)
+    ).addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small));
+
     const text = new TextDisplayBuilder()
         .setContent(`You have ${player.clicks.toFixed(2)} Clicks. (+${clicksAdded.toFixed(2)})\nYou have ${player.bits.toFixed(2)} Bits. (+${bitsAdded.toFixed(2)})`)
     
