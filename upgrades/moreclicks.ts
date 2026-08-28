@@ -19,4 +19,5 @@ export const upgradeData: Upgrade = {
         return "show"
     },
     type: "upgrade",
+    sort: 0,
 }

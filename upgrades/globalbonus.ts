@@ -26,4 +26,5 @@ export const upgradeData: Upgrade = {
         return "show"
     },
     type: "perk",
+    sort: 1,
 }

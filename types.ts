@@ -48,4 +48,5 @@ export interface Upgrade {
     price: (level: number) => number | null;
     visibility: (context: UpgradeShopContext) => "show" | "hide" | string;
     type: "upgrade" | "perk" | "focus";
+    sort: number;
 }
