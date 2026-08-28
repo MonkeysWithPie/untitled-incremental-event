@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, type BaseMessageOptionsWithPoll, type Interaction, type InteractionReplyOptions } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, SlashCommandBuilder, TextDisplayBuilder, type BaseMessageOptionsWithPoll, type Interaction, type InteractionReplyOptions } from "discord.js";
 import type { Command, UpgradeContext } from "../types.ts";
 import { MessageFlags } from 'discord-api-types/v10';
 import { database } from "../helpers/database.ts";
@@ -124,9 +124,22 @@ async function getResponse(interaction: Interaction, clicked = true): Promise<Ba
 
     const text = new TextDisplayBuilder()
         .setContent(`You have ${player.clicks.toFixed(2)} Clicks. (+${clicksAdded.toFixed(2)})\nYou have ${player.bits.toFixed(2)} Bits. (+${bitsAdded.toFixed(2)})`)
-    
 
     container.addTextDisplayComponents(text);
 
-    return { components: [container, row] }
+    const components: any[] = [container];
+
+    if (Object.keys(player.upgrades).length < 0 && player.clicks > 10) {
+        const upgradeTipContainer = new ContainerBuilder()
+            .setAccentColor(0x82edda)
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`### Tip\nYou are able to afford upgrades! Use /upgrade to view and purchase them.`)
+            )
+        components.push(upgradeTipContainer);
+    }
+
+    components.push(row);
+
+    return { components }
 }
