@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { ClientEvent } from './types.ts';
 import { pathToFileURL } from 'node:url';
-import { registerCommands } from './helpers/fileManager.ts';
+import { registerFiles } from './helpers/fileManager.ts';
 
 configEnv({ quiet: true });
 
@@ -24,7 +24,7 @@ for (const file of eventFiles) {
     }
 }
 
-registerCommands(import.meta.dirname)
+registerFiles(import.meta.dirname)
 
 client.login(token).then(() => {
     console.log(`logged in! ${client.user?.tag}`)

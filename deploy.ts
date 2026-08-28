@@ -1,13 +1,13 @@
 import { config as configEnv } from 'dotenv';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { getAllCommands, registerCommands } from './helpers/fileManager.ts';
+import { getAllCommands, registerFiles } from './helpers/fileManager.ts';
 import type { SharedSlashCommand, SlashCommandBuilder } from 'discord.js';
 import { database } from './helpers/database.ts';
 
 configEnv({ quiet: true });
 
-await registerCommands(import.meta.dirname);
+await registerFiles(import.meta.dirname);
 const fullCommands = [...getAllCommands().values()];
 const commands: Array<SlashCommandBuilder | SharedSlashCommand> = []
 

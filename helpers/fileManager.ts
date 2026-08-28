@@ -1,10 +1,11 @@
 import { InteractionContextType } from 'discord-api-types/v10';
-import type { Command } from '../types.ts';
+import type { Command, Upgrade } from '../types.ts';
 import { readdirSync } from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 
 let commands = new Map<string, Command>();
+let upgrades = new Map<string, Upgrade>();
 
 export function getCommand(name: string): Command {
     const cmd = commands.get(name);
@@ -14,11 +15,23 @@ export function getCommand(name: string): Command {
     return cmd;
 }
 
-export function getAllCommands(): Map<string, Command> {
+export function getUpgrade(name: string): Upgrade {
+    const upgrade = upgrades.get(name);
+    if (!upgrade) {
+        throw new Error(`upgrade ${name} not properly registered or doesn't exist!`);
+    }
+    return upgrade;
+}
+
+export function getAllCommands() {
     return commands;
 }
 
-export async function registerCommands(basePath: string) {
+export function getAllUpgrades() {
+    return upgrades.values();
+}
+
+export async function registerFiles(basePath: string) {
     const commandPath = path.join(basePath, 'commands');
     const commandFiles = readdirSync(commandPath).filter(file => file.endsWith('.ts'));
 
@@ -37,5 +50,18 @@ export async function registerCommands(basePath: string) {
         );
 
         commands.set(command.name, command);
+    }
+
+    const upgradePath = path.join(basePath, 'upgrades');
+    const upgradeFiles = readdirSync(upgradePath).filter(file => file.endsWith('.ts'));
+
+    for (const file of upgradeFiles) {
+        const fullPath = path.join(upgradePath, file);
+        const fileUrl = pathToFileURL(fullPath).href;
+        const upgradeModule = await import(fileUrl);
+        
+        const upgrade: Upgrade = upgradeModule.upgradeData;
+
+        upgrades.set(upgrade.id, upgrade);
     }
 }

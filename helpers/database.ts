@@ -14,6 +14,8 @@ class Player extends Model<InferAttributes<Player>, InferCreationAttributes<Play
 
     declare clicks: number;
     declare bits: number;
+
+    declare upgrades: { [name: string]: number };
 }
 
 Player.init(
@@ -32,6 +34,11 @@ Player.init(
             type: DataTypes.NUMBER,
             defaultValue: 0,
         },
+
+        upgrades: {
+            type: DataTypes.JSON,
+            defaultValue: {},
+        }
     },
     {
         sequelize,

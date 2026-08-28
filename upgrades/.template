@@ -1,0 +1,24 @@
+import type { Upgrade } from "../types.ts";
+
+const self: Upgrade = {
+    name: "",
+    id: "",
+    description: "",
+    effectString: (context, level) => {
+        return ``
+    },
+    effect: (context, level) => {
+        return {
+            
+        }
+    },
+    price: (level) => {
+        return 0
+    },
+    visibility: (context) => {
+        return "show"
+    },
+    type: "",
+}
+
+module.exports = self;
